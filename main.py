@@ -1,108 +1,88 @@
-from dataclasses import dataclass
 import random
+from constraints import validate
+from constraints.models import (
+    Period,
+    Subject,
+)
+import logging
+from collections import defaultdict
+from typing import Dict, List, Optional
+from constants import primary_subs_raw, secondary_subs_raw
 
+LOG = logging.getLogger("table_buddy.core.timetable")
 NO_OF_TEACHERS = 40
 NO_OF_PERIODS_PER_DAY = 6
-CLASSES = 10
+NO_OF_WORKING_DAYS = 5
+NO_OF_CLASSES = 10
 SECTIONS = ["A", "B"]
 
 
-@dataclass
-class Subject:
-    name: str
-    id: str
-    standard: str
+def find_empty_slot(timetables, cell):
+    """Find empty slot in timetables.
+
+    Arguments:
+    cell -- list of (class_index,day,period), passed by reference and mutated in place
+    timetables -- 3d list of periods
+    """
+    for class_index in range(len(timetables)):
+        for day in range(NO_OF_WORKING_DAYS):
+            for period in range(NO_OF_PERIODS_PER_DAY):
+                LOG.debug(day, period, len(timetables), len(timetables[0]), len(timetables[0][0]))
+                if timetables[class_index][day][period] is None:
+                    cell[0] = class_index
+                    cell[1] = day
+                    cell[2] = period
+                    return True
+    return False
 
 
-@dataclass
-class Period:
-    subject: Subject
-    day: int
-    period: int
+class TimetableGenerator:
+    def __init__(self, no_of_classes: int, subjects: Dict[int, List[Subject]]):
+        self.no_of_classes = no_of_classes
+        self.subjects = subjects
+        self.timetables: List[List[List[Optional[Period]]]] = [
+            [[None for _ in range(NO_OF_PERIODS_PER_DAY)] for i in range(NO_OF_WORKING_DAYS)]
+            for j in range(self.no_of_classes * 2)
+        ]  # Multiplied by 2 because of two sections
+
+    def generate_timetables(self):
+        """Generate timetable for school using backtracking"""
+
+        cell: List[int] = [0, 0, 0]
+
+        if not find_empty_slot(self.timetables, cell):
+            return self.timetables
+
+        curr_class = cell[0] // 2  # Multiplied by 2 because of two sections
+        curr_day = cell[1]
+        curr_period = cell[2]
+
+        for sub in self.subjects[curr_class]:
+            period = Period(sub, curr_day, curr_period)
+            if validate(self.timetables[curr_class], period):
+                self.timetables[curr_class][curr_day][curr_period] = period
+                if self.generate_timetables():
+                    return True
+
+                self.timetables[curr_class][curr_day][curr_period] = None
+        return False
 
 
-primary_subs_raw = ["English", "Language", "Maths", "Science", "Social Science"]
-primary_subs = []
+if __name__ == "__main__":
+    primary_subs: Dict[int, List[Subject]] = defaultdict(list)
 
-for standard in range(1, 6):
-    for sub in primary_subs_raw:
-        primary_subs.append(Subject(sub, f"{sub}_{standard}", str(standard)))
+    for standard in range(NO_OF_CLASSES):
+        for sub in primary_subs_raw:
+            primary_subs[standard].append(Subject(sub, f"{sub}_{standard}", standard))
 
-# TODO add PT
-# primary_subs.append(Subject("PT", "PT-Common", "1"))
+    # secondary_subs: Dict[int, List[Subject]] = {}
 
-secondary_subs_raw = [
-    "Prose-1",
-    "Poetry-1",
-    "Grammar-2",
-    "Prose-2",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "Algebra",
-    "Trignometry",
-    "Geometry",
-    "History",
-    "Civics",
-    "Geography",
-    "PT",
-]
-secondary_subs = []
+    # for standard in range(6, 10):
+    #     for sub in secondary_subs_raw:
+    #         secondary_subs[standard].append(Subject(sub, f"{sub}_{standard}", standard))
 
-for standard in range(6, 10):
-    for sub in secondary_subs_raw:
-        secondary_subs.append(Subject(sub, f"{sub}_{standard}", str(standard)))
-
-print(*primary_subs, len(primary_subs), sep="\n")
-print(*secondary_subs, len(secondary_subs), sep="\n")
-
-
-class Constraint:
-    # TODO add more constraints
-    def __init__(self) -> None:
-        pass
-
-    def validate(self, *args) -> bool:
-        return all(
-            getattr(self, func)(*args) for func in dir(self) if func.startswith("constraint_")
-        )
-
-    def constraint_prev(self, timetable, periods, period, day) -> bool:
-        return random.choice([True, False])
-
-
-def check_constraints(timetable, periods, period, day) -> bool:
-    """Check if the period is valid"""
-    return Constraint().validate(timetable, periods, period, day)
-
-
-def generate_timetable():
-    """Generate timetable for school using backtracking"""
-    timetables = []
-    # Primary
-    for class_ in range(1, 6):
-        for section in SECTIONS:
-            timetable = []
-
-            # Mon to Fri
-            for day in range(1, 6):
-                periods = []
-                for period in range(1, NO_OF_PERIODS_PER_DAY + 1):
-                    subject = random.choice(primary_subs)
-                    if check_constraints(timetable, periods, period, day):
-                        periods.append(
-                            (
-                                f"{class_} {section}",
-                                subject,
-                                day,
-                                period,
-                            )
-                        )
-                    else:
-                        # TODO add recurision logic
-                        pass
-                timetable.append(periods)
-            print(*timetable, sep="\n")
-
-
-generate_timetable()
+    # print(*primary_subs, len(primary_subs), sep="\n")
+    # print(*secondary_subs, len(secondary_subs), sep="\n")
+    primary_classes = TimetableGenerator(5, primary_subs)
+    final_table = primary_classes.generate_timetables()
+    print(final_table)

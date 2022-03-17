@@ -1,5 +1,4 @@
 import logging
-from collections import defaultdict
 from typing import Dict, List, Optional
 import random
 
@@ -20,13 +19,12 @@ logging.basicConfig(
     handlers=[RichHandler(rich_tracebacks=True)],
 )
 LOG = logging.getLogger("table_buddy.core.timetable")
-random.seed(1)
 
-# secondary_subs: Dict[int, List[Subject]] = {}
+# Bad seed that takes a lot of time to generate
+# random.seed(1)
 
-# for standard in range(6, 10):
-#     for sub in secondary_subs_raw:
-#         secondary_subs[standard].append(Subject(sub, f"{sub}_{standard}", standard))
+# Good seed (TODO change)
+random.seed(3)
 
 
 def find_empty_slot(timetables, cell):

@@ -32,3 +32,8 @@ primary_subs: Dict[int, List[Subject]] = defaultdict(list)
 for standard in range(NO_OF_CLASSES):
     for sub in primary_subs_raw:
         primary_subs[standard].append(Subject(sub, f"{sub}_{standard}", standard))
+
+# secondary_subs: Dict[int, List[Subject]] = {}
+# for standard in range(6, 10):
+#     for sub in secondary_subs_raw:
+#         secondary_subs[standard].append(Subject(sub, f"{sub}_{standard}", standard))

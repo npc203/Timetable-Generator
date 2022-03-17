@@ -9,7 +9,7 @@ LOG = logging.getLogger("table_buddy.core.constraints")
 class MinQuotas(ConstraintGroup):
     @constraint
     def current_day_quota(self, timetables, cell, subject) -> bool:
-        """Can repeat twice in a day"""
+        """Atmost repeat twice in a day"""
         day_periods = timetables[cell[0]][cell[1]]  # get the current day periods
         if sum(subject.name == period.subject.name for period in day_periods if period) >= 2:
             LOG.debug(
@@ -27,7 +27,7 @@ class MinQuotas(ConstraintGroup):
             # Then we can check for dupes, and if they occur more than twice, return False
             return (
                 len(set(i.subject.name if i else subject for i in timetables[cell[0]][cell[1]]))
-                >= NO_OF_PERIODS_PER_DAY - 1
+                > NO_OF_PERIODS_PER_DAY - 1
             )
         return True
 

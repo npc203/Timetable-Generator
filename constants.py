@@ -6,7 +6,7 @@ NO_OF_TEACHERS = 40
 NO_OF_PERIODS_PER_DAY = 6
 NO_OF_WORKING_DAYS = 5
 NO_OF_CLASSES = 10
-SECTIONS = ["A", "B"]
+NO_OF_SECTIONS = 2
 
 
 primary_subs_raw = ["English", "Language", "Maths", "Science", "Social Science"]

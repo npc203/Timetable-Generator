@@ -8,6 +8,7 @@ from rich.logging import RichHandler
 from constants import *
 from constraints import validate
 from constraints.models import Period, Subject
+import tabulate
 
 # importing restrictions to register the various constraint classes
 from restrictions import *
@@ -19,7 +20,7 @@ logging.basicConfig(
     handlers=[RichHandler(rich_tracebacks=True)],
 )
 LOG = logging.getLogger("table_buddy.core.timetable")
-
+random.seed(1)
 
 # secondary_subs: Dict[int, List[Subject]] = {}
 
@@ -52,8 +53,8 @@ class TimetableGenerator:
         self.subjects = subjects
         self.timetables: List[List[List[Optional[Period]]]] = [
             [[None] * NO_OF_PERIODS_PER_DAY for _ in range(NO_OF_WORKING_DAYS)]
-            for _ in range(self.no_of_classes * 2)
-        ]  # Multiplied by 2 because of two sections
+            for _ in range(self.no_of_classes * NO_OF_SECTIONS)
+        ]  # No of classes * No of sections
 
     def generate_timetables(self):
         """Generate timetable for school using backtracking"""
@@ -85,19 +86,22 @@ class TimetableGenerator:
     def print_table(self, class_index=None):
         """Print timetable for a class or all classes"""
 
-        final_str = ""
-
         def format_class(index, class_):
-            nonlocal final_str
+            final_str = ""
             final_str += f"Class: {index}\n"
-            final_str += "-" * 20 + "\n"
 
+            data = []
             for day in class_:
-                final_str += (
-                    ", ".join("-" if period is None else period.subject.name for period in day)
-                    + "\n"
+                data.append(["-" if period is None else period.subject.name for period in day])
+
+            final_str += (
+                tabulate.tabulate(
+                    data,
+                    headers=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                    tablefmt="fancy_grid",
                 )
-            final_str += "-" * 20 + "\n"
+                + "\n"
+            )
             return final_str
 
         if class_index is None:

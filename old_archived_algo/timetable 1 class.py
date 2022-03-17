@@ -1,4 +1,5 @@
 import random
+
 from tabulate import tabulate
 
 random.seed(1)

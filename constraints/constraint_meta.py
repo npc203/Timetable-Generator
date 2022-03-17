@@ -1,7 +1,10 @@
+import logging
 from functools import wraps
 from typing import Any, Callable, List, Optional
+
 from .models import Period, Subject
-import weakref
+
+LOG = logging.getLogger("table_buddy.core.constraints")
 
 
 def constraint(func: Callable[[Any, List[List[List[Optional[Period]]]], List, Subject], bool]):
@@ -22,6 +25,7 @@ class ConstraintGroup:
 
     @classmethod
     def update(cls, arg_cls):
+        LOG.info("Registering constraint class: %s" % arg_cls.__name__)
         cls.constraints.extend(
             [c for c in arg_cls.__dict__.values() if hasattr(c, "is_constraint")]
         )

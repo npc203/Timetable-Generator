@@ -1,4 +1,5 @@
 import random
+
 from tabulate import tabulate
 
 subs = ["maths", "social", "science", "language", "english"]

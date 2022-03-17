@@ -1,6 +1,7 @@
-from typing import Dict,List
+from typing import Dict, List
 from constraints import Subject
 from collections import defaultdict
+
 primary_subs_raw = ["English", "Language", "Maths", "Science", "Social Science"]
 secondary_subs_raw = [
     "Prose-1",
@@ -18,4 +19,3 @@ secondary_subs_raw = [
     "Geography",
     "PT",
 ]
-

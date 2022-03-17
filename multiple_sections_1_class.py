@@ -1,18 +1,19 @@
 import random
+from tests import validity_check
 
 subs = ["maths", "social", "science", "language", "english"]
 extra = ["art", "PT", "music"]
 
 
 def main(prev_gen=None):
-    timetable = [[None for i in range(6)] for j in range(5)]
+    timetable = [["empty" for i in range(6)] for j in range(5)]
     for i in range(5):
         dup = [0] * 6
         for j in range(6):
             while True:
                 sub = random.choice(subs + extra)
                 if prev_gen and prev_gen[i][j] == sub:
-                    break
+                    continue
                 if sub in subs:
                     sub_ind = subs.index(sub)
                     if not (any(ele >= 2 for ele in dup) and dup[sub_ind] >= 1):
@@ -43,3 +44,4 @@ if __name__ == "__main__":
     print(*prev_gen, sep="\n")
     print("-" * 20)
     print(*new, sep="\n")
+    validity_check(prev_gen, new)

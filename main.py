@@ -5,11 +5,20 @@ from constraints.models import (
     Subject,
 )
 import logging
+from rich.logging import RichHandler
 from collections import defaultdict
 from typing import Dict, List, Optional
 from constants import primary_subs_raw, secondary_subs_raw
 
+logging.basicConfig(
+    level="INFO",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True)],
+)
 LOG = logging.getLogger("table_buddy.core.timetable")
+
+
 NO_OF_TEACHERS = 40
 NO_OF_PERIODS_PER_DAY = 6
 NO_OF_WORKING_DAYS = 5
@@ -27,7 +36,6 @@ def find_empty_slot(timetables, cell):
     for class_index in range(len(timetables)):
         for day in range(NO_OF_WORKING_DAYS):
             for period in range(NO_OF_PERIODS_PER_DAY):
-                LOG.debug(day, period, len(timetables), len(timetables[0]), len(timetables[0][0]))
                 if timetables[class_index][day][period] is None:
                     cell[0] = class_index
                     cell[1] = day
@@ -41,8 +49,8 @@ class TimetableGenerator:
         self.no_of_classes = no_of_classes
         self.subjects = subjects
         self.timetables: List[List[List[Optional[Period]]]] = [
-            [[None for _ in range(NO_OF_PERIODS_PER_DAY)] for i in range(NO_OF_WORKING_DAYS)]
-            for j in range(self.no_of_classes * 2)
+            [[None] * NO_OF_PERIODS_PER_DAY for _ in range(NO_OF_WORKING_DAYS)]
+            for _ in range(self.no_of_classes * 2)
         ]  # Multiplied by 2 because of two sections
 
     def generate_timetables(self):
@@ -51,21 +59,35 @@ class TimetableGenerator:
         cell: List[int] = [0, 0, 0]
 
         if not find_empty_slot(self.timetables, cell):
+            LOG.debug("No empty slot found")
             return self.timetables
 
-        curr_class = cell[0] // 2  # Multiplied by 2 because of two sections
+        curr_class = cell[0]
         curr_day = cell[1]
         curr_period = cell[2]
 
-        for sub in self.subjects[curr_class]:
-            period = Period(sub, curr_day, curr_period)
-            if validate(self.timetables[curr_class], period):
+        LOG.debug("Current cell: {}".format(cell))
+        for sub in self.subjects[curr_class]:  # TODO random shuffle/sample
+            if validate(self.timetables, cell, sub):
+                period = Period(sub, curr_day, curr_period)  # Creating period obj if it's valid
+                LOG.debug("Chosen Subject: {}".format(sub.name))
                 self.timetables[curr_class][curr_day][curr_period] = period
                 if self.generate_timetables():
                     return True
 
                 self.timetables[curr_class][curr_day][curr_period] = None
         return False
+
+    def print_table(self):
+        for class_ in self.timetables:
+            for day in class_:
+                for period in day:
+                    if period is None:
+                        print("-", end=", ")
+                    else:
+                        print(period.subject.name, end=", ")
+                print()
+            print("-" * 20)
 
 
 if __name__ == "__main__":
@@ -84,5 +106,7 @@ if __name__ == "__main__":
     # print(*primary_subs, len(primary_subs), sep="\n")
     # print(*secondary_subs, len(secondary_subs), sep="\n")
     primary_classes = TimetableGenerator(5, primary_subs)
-    final_table = primary_classes.generate_timetables()
-    print(final_table)
+    if primary_classes.generate_timetables():
+        primary_classes.print_table()
+    else:
+        LOG.info("Timetable cannot generated with the given constraints")

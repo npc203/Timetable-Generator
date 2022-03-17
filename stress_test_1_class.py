@@ -5,7 +5,7 @@ extra = ["art", "PT", "music"]
 
 
 def main():
-    timetable = [[0 for i in range(6)] for j in range(5)]
+    timetable = [["" for i in range(6)] for j in range(5)]
     for i in range(5):
         dup = [0] * 6
         for j in range(6):

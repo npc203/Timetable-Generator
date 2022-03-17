@@ -1,25 +1,27 @@
 from .constraint_meta import ConstraintGroup, constraint, validate
 from .models import Period, Subject
-import random
+import logging
+
+LOG = logging.getLogger("table_buddy.core.constraints")
 
 
-class ConstraintMain(ConstraintGroup):
+class MinQuotas(ConstraintGroup):
     @constraint
-    def current_day_quota(self, timetable, period) -> bool:
-        return random.choice([True, False])
+    def current_day_quota(self, timetables, cell, subject) -> bool:
+        """Can repeat twice in a day"""
+        day_periods = timetables[cell[0]][cell[1]]
+        if sum(subject.name == period.subject.name for period in day_periods if period) >= 2:
+            LOG.debug(
+                "%s %s %s"
+                % (cell, subject.name, [i.subject.name if i else "NONE" for i in day_periods])
+            )
+            return False
+        return True
 
     @constraint
-    def weekly_period_quota(self, timetable, period) -> bool:
-        return random.choice([True, False])
-
-
-class C1(ConstraintGroup):
-    @constraint
-    def combulate(self, timetable, period) -> bool:
-        return random.choice([True, False])
+    def weekly_period_quota(self, timetables, cell, subject) -> bool:
+        return True
 
 
 if __name__ == "__main__":
-    a = ConstraintMain()
-    b = C1()
-    print(validate([[None]], Period(Subject("a", "a", 1), 1, 1)))
+    print(validate([[[None]]], [0, 0, 0], Subject("a", "a", 1)))

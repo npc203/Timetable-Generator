@@ -1,6 +1,7 @@
-from typing import Dict, List
-from constraints import Subject
 from collections import defaultdict
+from typing import Dict, List
+
+from .constraints import Subject
 
 NO_OF_TEACHERS = 40
 NO_OF_PERIODS_PER_DAY = 6
@@ -33,7 +34,7 @@ for standard in range(NO_OF_CLASSES):
     for sub in primary_subs_raw:
         primary_subs[standard].append(Subject(sub, f"{sub}_{standard}", standard))
 
-# secondary_subs: Dict[int, List[Subject]] = {}
-# for standard in range(6, 10):
-#     for sub in secondary_subs_raw:
-#         secondary_subs[standard].append(Subject(sub, f"{sub}_{standard}", standard))
+secondary_subs: Dict[int, List[Subject]] = defaultdict(list)
+for standard in range(NO_OF_CLASSES):
+    for sub in secondary_subs_raw:
+        secondary_subs[standard].append(Subject(sub, f"{sub}_{standard}", standard))

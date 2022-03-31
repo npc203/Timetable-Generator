@@ -1,13 +1,12 @@
+import copy
+import sys
 import unittest
 
-from constants import primary_subs
-import copy
-
-import sys
+from timetable_generator.constants import primary_subs
 
 # Hack to get the correct path working
 sys.path.append("..")
-from backtrack import TimetableGenerator
+from timetable_generator.backtrack import TimetableGenerator
 
 
 def cleanup_timetable_to_names(timetable):

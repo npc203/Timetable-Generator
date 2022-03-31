@@ -1,23 +1,17 @@
 import logging
-from typing import Dict, List, Optional
 import random
+from typing import Dict, List, Optional
 
-from rich.logging import RichHandler
-
-from constants import *
-from constraints import validate
-from constraints.models import Period, Subject
 import tabulate
 
-# importing restrictions to register the various constraint classes
-from restrictions import *
+from .constants import *
+from .constraints import validate
+from .constraints.models import Period, Subject
+import roman
 
-logging.basicConfig(
-    level="INFO",
-    format="%(message)s",
-    datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True)],
-)
+# importing restrictions to register the various constraint classes
+from .restrictions import *
+
 LOG = logging.getLogger("table_buddy.core.timetable")
 
 # Bad seed that takes a lot of time to generate
@@ -109,28 +103,46 @@ class TimetableGenerator:
             print(format_class(class_index, self.timetables[class_index]))
 
 
+def generate() -> Dict[tuple, List[List[Period]]]:
+    """Generate timetable for school using backtracking"""
+    LOG.info("Generating timetable for all classes at once.")
+    class_objs = (TimetableGenerator(5, primary_subs), TimetableGenerator(5, secondary_subs))
+    final_timetable = {}
+    class_no = 0
+    for class_obj in class_objs:
+        class_obj.generate_timetables()
+        for timetable in class_obj.timetables:
+            final_timetable[
+                (roman.toRoman(int(class_no * 0.5 + 1)), ("A" if class_no % 2 == 0 else "B"))
+            ] = timetable
+            class_no += 1
+    LOG.debug("Done")
+    return final_timetable
+
+
 if __name__ == "__main__":
-    primary_classes = TimetableGenerator(5, primary_subs)
+    print(generate())
+    # primary_classes = TimetableGenerator(5, primary_subs)
 
-    ### Debug printing tables
-    import threading, time
+    # ### Debug printing tables
+    # import threading, time
 
-    class PrintThread(threading.Thread):
-        def __init__(self, generator):
-            super().__init__()
-            self.generator = generator
+    # class PrintThread(threading.Thread):
+    #     def __init__(self, generator):
+    #         super().__init__()
+    #         self.generator = generator
 
-        def run(self):
-            while True:
-                self.generator.print_table(0)
-                time.sleep(5)
+    #     def run(self):
+    #         while True:
+    #             self.generator.print_table(0)
+    #             time.sleep(5)
 
-    thread = PrintThread(primary_classes)
-    thread.daemon = True
+    # thread = PrintThread(primary_classes)
+    # thread.daemon = True
     # thread.start()
     ### END Debug printing tables
 
-    if primary_classes.generate_timetables():
-        primary_classes.print_table()
-    else:
-        LOG.info("Timetable cannot generated with the given constraints")
+    # if primary_classes.generate_timetables():
+    #     primary_classes.print_table()
+    # else:
+    #     LOG.info("Timetable cannot generated with the given constraints")

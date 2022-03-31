@@ -1,7 +1,7 @@
 import logging
 
-from constants import NO_OF_PERIODS_PER_DAY, NO_OF_SECTIONS, primary_subs
-from constraints import Cell, ConstraintGroup, Subject, constraint, validate
+from .constants import NO_OF_PERIODS_PER_DAY, NO_OF_SECTIONS, primary_subs
+from .constraints import Cell, ConstraintGroup, Subject, constraint, validate
 
 LOG = logging.getLogger("table_buddy.core.constraints")
 
@@ -43,7 +43,7 @@ class MinQuotas(ConstraintGroup):
                     total_occurences_in_week += sum(
                         check_sub.name == period.subject.name for period in day if period
                     )
-                if not (7 >= total_occurences_in_week >= 1):
+                if not (7 >= total_occurences_in_week >= 0):
                     return False
 
         return True

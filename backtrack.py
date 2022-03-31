@@ -18,7 +18,7 @@ LOG = logging.getLogger("table_buddy.core.timetable")
 # random.seed(1)
 
 # Good seed (TODO change)
-random.seed(3)
+#random.seed(3)
 
 
 def find_empty_slot(timetables, cell):
